@@ -10,66 +10,46 @@ type Patient = Record<{
     phone: string;
     createdAt: nat64;
     updatedAt: Opt<nat64>;
-}>
+}>;
 
-type PatientPayload = Record<{
-    name: string;
-    dob: string;
-    gender: string;
-    phone: string;
-}>
+type PatientPayload = Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>;
 
 // Define Appointment Record and Payload
 type Appointment = Record<{
-  id: string;
-  patientId: string;
-  therapistId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  createdAt: nat64;
-}>
+    id: string;
+    patientId: string;
+    therapistId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    createdAt: nat64;
+}>;
 
-type AppointmentPayload = Record<{
-  patientId: string;
-  therapistId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-}>
+type AppointmentPayload = Omit<Appointment, 'id' | 'createdAt'>;
 
 // Define Therapist Record and Payload
 type Therapist = Record<{
-  id: string;
-  name: string;
-  specialization: string;
-  phone: string;
-  createdAt: nat64;
-  updatedAt: Opt<nat64>;
-}>
+    id: string;
+    name: string;
+    specialization: string;
+    phone: string;
+    createdAt: nat64;
+    updatedAt: Opt<nat64>;
+}>;
 
-type TherapistPayload = Record<{
-  name: string;
-  specialization: string;
-  phone: string;
-}>
-
+type TherapistPayload = Omit<Therapist, 'id' | 'createdAt' | 'updatedAt'>;
 
 // Define Treatment Record and Payload
 type Treatment = Record<{
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  createdAt: nat64;
-  updatedAt: Opt<nat64>;
-}>
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    createdAt: nat64;
+    updatedAt: Opt<nat64>;
+}>;
 
-type TreatmentPayload = Record<{
-  name: string;
-  description: string;
-  price: number;
-}>
+type TreatmentPayload = Omit<Treatment, 'id' | 'createdAt' | 'updatedAt'>;
 
 // Create a map to store patient records
 const patientStorage = new StableBTreeMap<string, Patient>(0, 44, 1024);
@@ -88,7 +68,12 @@ export function addPatient(payload: PatientPayload): Result<Patient, string> {
         return Result.Err("Invalid patient payload. All fields are required.");
     }
 
-    const patient: Patient = { id: uuidv4(), createdAt: ic.time(), updatedAt: Opt.None, ...payload };
+    const patient: Patient = {
+        id: uuidv4(),
+        createdAt: ic.time(),
+        updatedAt: Opt.None,
+        ...payload
+    };
     patientStorage.insert(patient.id, patient);
     return Result.Ok(patient);
 }
@@ -103,8 +88,8 @@ export function getPatients(): Result<Vec<Patient>, string> {
 $query;
 export function getPatient(id: string): Result<Patient, string> {
     return match(patientStorage.get(id), {
-        Some: (patient) => Result.Ok<Patient, string>(patient),
-        None: () => Result.Err<Patient, string>(`Patient with id=${id} not found`)
+        Some: (patient) => Result.Ok(patient),
+        None: () => Result.Err(`Patient with id=${id} not found`)
     });
 }
 
@@ -121,11 +106,11 @@ export function updatePatient(id: string, payload: PatientPayload): Result<Patie
 
     return match(patientStorage.get(id), {
         Some: (patient) => {
-            const updatedPatient: Patient = {...patient, ...payload, updatedAt: Opt.Some(ic.time())};
+            const updatedPatient: Patient = { ...patient, ...payload, updatedAt: Opt.Some(ic.time()) };
             patientStorage.insert(patient.id, updatedPatient);
-            return Result.Ok<Patient, string>(updatedPatient);
+            return Result.Ok(updatedPatient);
         },
-        None: () => Result.Err<Patient, string>(`Couldn't update a patient with id=${id}. Patient not found`)
+        None: () => Result.Err(`Couldn't update a patient with id=${id}. Patient not found`)
     });
 }
 
@@ -133,8 +118,8 @@ export function updatePatient(id: string, payload: PatientPayload): Result<Patie
 $update;
 export function deletePatient(id: string): Result<Patient, string> {
     return match(patientStorage.remove(id), {
-        Some: (deletedPatient) => Result.Ok<Patient, string>(deletedPatient),
-        None: () => Result.Err<Patient, string>(`Couldn't delete a patient with id=${id}. Patient not found.`)
+        Some: (deletedPatient) => Result.Ok(deletedPatient),
+        None: () => Result.Err(`Couldn't delete a patient with id=${id}. Patient not found.`)
     });
 }
 
@@ -148,7 +133,11 @@ export function addAppointment(payload: AppointmentPayload): Result<Appointment,
 
     // Additional validation logic can be added here, such as checking for scheduling conflicts
 
-    const appointment: Appointment = { id: uuidv4(), createdAt: ic.time(), ...payload };
+    const appointment: Appointment = {
+        id: uuidv4(),
+        createdAt: ic.time(),
+        ...payload
+    };
     appointmentStorage.insert(appointment.id, appointment);
     return Result.Ok(appointment);
 }
@@ -172,11 +161,11 @@ export function updateAppointment(id: string, payload: AppointmentPayload): Resu
 
     return match(appointmentStorage.get(id), {
         Some: (appointment) => {
-            const updatedAppointment: Appointment = {...appointment, ...payload};
+            const updatedAppointment: Appointment = { ...appointment, ...payload };
             appointmentStorage.insert(appointment.id, updatedAppointment);
-            return Result.Ok<Appointment, string>(updatedAppointment);
+            return Result.Ok(updatedAppointment);
         },
-        None: () => Result.Err<Appointment, string>(`Couldn't update an appointment with id=${id}. Appointment not found`)
+        None: () => Result.Err(`Couldn't update an appointment with id=${id}. Appointment not found`)
     });
 }
 
@@ -184,54 +173,64 @@ export function updateAppointment(id: string, payload: AppointmentPayload): Resu
 $update;
 export function deleteAppointment(id: string): Result<Appointment, string> {
     return match(appointmentStorage.remove(id), {
-        Some: (deletedAppointment) => Result.Ok<Appointment, string>(deletedAppointment),
-        None: () => Result.Err<Appointment, string>(`Couldn't delete an appointment with id=${id}. Appointment not found.`)
+        Some: (deletedAppointment) => Result.Ok(deletedAppointment),
+        None: () => Result.Err(`Couldn't delete an appointment with id=${id}. Appointment not found.`)
     });
 }
 
 // Add therapist function
 $update;
 export function addTherapist(payload: TherapistPayload): Result<Therapist, string> {
-  // Input validation
-  if (!payload || !payload.name || !payload.specialization || !payload.phone) {
-      return Result.Err("Invalid therapist payload. All fields are required.");
-  }
+    // Input validation
+    if (!payload || !payload.name || !payload.specialization || !payload.phone) {
+        return Result.Err("Invalid therapist payload. All fields are required.");
+    }
 
-  const therapist: Therapist = { id: uuidv4(), createdAt: ic.time(), updatedAt: Opt.None, ...payload };
-  therapistStorage.insert(therapist.id, therapist);
-  return Result.Ok(therapist);
+    const therapist: Therapist = {
+        id: uuidv4(),
+        createdAt: ic.time(),
+        updatedAt: Opt.None,
+        ...payload
+    };
+    therapistStorage.insert(therapist.id, therapist);
+    return Result.Ok(therapist);
 }
 
 // Get all therapists function
 $query;
 export function getTherapists(): Result<Vec<Therapist>, string> {
-  return Result.Ok(therapistStorage.values());
+    return Result.Ok(therapistStorage.values());
 }
 
 // Add treatment function
 $update;
 export function addTreatment(payload: TreatmentPayload): Result<Treatment, string> {
-  // Input validation
-  if (!payload || !payload.name || !payload.description || !payload.price) {
-      return Result.Err("Invalid treatment payload. All fields are required.");
-  }
+    // Input validation
+    if (!payload || !payload.name || !payload.description || !payload.price) {
+        return Result.Err("Invalid treatment payload. All fields are required.");
+    }
 
-  const treatment: Treatment = { id: uuidv4(), createdAt: ic.time(), updatedAt: Opt.None, ...payload };
-  treatmentStorage.insert(treatment.id, treatment);
-  return Result.Ok(treatment);
+    const treatment: Treatment = {
+        id: uuidv4(),
+        createdAt: ic.time(),
+        updatedAt: Opt.None,
+        ...payload
+    };
+    treatmentStorage.insert(treatment.id, treatment);
+    return Result.Ok(treatment);
 }
 
 // Get all treatments function
 $query;
 export function getTreatments(): Result<Vec<Treatment>, string> {
-  return Result.Ok(treatmentStorage.values());
+    return Result.Ok(treatmentStorage.values());
 }
 
 $query;
 export function getTreatment(id: string): Result<Treatment, string> {
     return match(treatmentStorage.get(id), {
-        Some: (treatment) => Result.Ok<Treatment, string>(treatment),
-        None: () => Result.Err<Treatment, string>(`Treatment with id=${id} not found`)
+        Some: (treatment) => Result.Ok(treatment),
+        None: () => Result.Err(`Treatment with id=${id} not found`)
     });
 }
 
@@ -247,35 +246,35 @@ export function updateTreatment(id: string, payload: TreatmentPayload): Result<T
 
     return match(treatmentStorage.get(id), {
         Some: (treatment) => {
-            const updatedTreatment: Treatment = {...treatment, ...payload, updatedAt: Opt.Some(ic.time())};
+            const updatedTreatment: Treatment = { ...treatment, ...payload, updatedAt: Opt.Some(ic.time()) };
             treatmentStorage.insert(treatment.id, updatedTreatment);
-            return Result.Ok<Treatment, string>(updatedTreatment);
+            return Result.Ok(updatedTreatment);
         },
-        None: () => Result.Err<Treatment, string>(`Couldn't update a treatment with id=${id}. Treatment not found`)
+        None: () => Result.Err(`Couldn't update a treatment with id=${id}. Treatment not found`)
     });
 }
 
 $update;
 export function deleteTreatment(id: string): Result<Treatment, string> {
     return match(treatmentStorage.remove(id), {
-        Some: (deletedTreatment) => Result.Ok<Treatment, string>(deletedTreatment),
-        None: () => Result.Err<Treatment, string>(`Couldn't delete a treatment with id=${id}. Treatment not found.`)
+        Some: (deletedTreatment) => Result.Ok(deletedTreatment),
+        None: () => Result.Err(`Couldn't delete a treatment with id=${id}. Treatment not found.`)
     });
 }
 
 $query;
 export function getTherapist(id: string): Result<Therapist, string> {
     return match(therapistStorage.get(id), {
-        Some: (therapist) => Result.Ok<Therapist, string>(therapist),
-        None: () => Result.Err<Therapist, string>(`Therapist with id=${id} not found`)
+        Some: (therapist) => Result.Ok(therapist),
+        None: () => Result.Err(`Therapist with id=${id} not found`)
     });
 }
 
 $update;
 export function deleteTherapist(id: string): Result<Therapist, string> {
     return match(therapistStorage.remove(id), {
-        Some: (deletedTherapist) => Result.Ok<Therapist, string>(deletedTherapist),
-        None: () => Result.Err<Therapist, string>(`Couldn't delete a therapist with id=${id}. Therapist not found.`)
+        Some: (deletedTherapist) => Result.Ok(deletedTherapist),
+        None: () => Result.Err(`Couldn't delete a therapist with id=${id}. Therapist not found.`)
     });
 }
 
@@ -291,11 +290,11 @@ export function updateTherapist(id: string, payload: TherapistPayload): Result<T
 
     return match(therapistStorage.get(id), {
         Some: (therapist) => {
-            const updatedTherapist: Therapist = {...therapist, ...payload, updatedAt: Opt.Some(ic.time())};
+            const updatedTherapist: Therapist = { ...therapist, ...payload, updatedAt: Opt.Some(ic.time()) };
             therapistStorage.insert(therapist.id, updatedTherapist);
-            return Result.Ok<Therapist, string>(updatedTherapist);
+            return Result.Ok(updatedTherapist);
         },
-        None: () => Result.Err<Therapist, string>(`Couldn't update a therapist with id=${id}. Therapist not found`)
+        None: () => Result.Err(`Couldn't update a therapist with id=${id}. Therapist not found`)
     });
 }
 
@@ -330,14 +329,13 @@ export function getTreatmentsByPriceRange(minPrice: number, maxPrice: number): R
 
 // a workaround to make uuid package work with Azle
 globalThis.crypto = {
-  // @ts-ignore
- getRandomValues: () => {
-     let array = new Uint8Array(32);
+    getRandomValues: () => {
+        let array = new Uint8Array(32);
 
-     for (let i = 0; i < array.length; i++) {
-         array[i] = Math.floor(Math.random() * 256);
-     }
+        for (let i = 0; i < array.length; i++) {
+            array[i] = Math.floor(Math.random() * 256);
+        }
 
-     return array;
- }
+        return array;
+    }
 };
