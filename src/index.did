@@ -1,0 +1,90 @@
+type Appointment = record {
+  id : text;
+  startTime : text;
+  endTime : text;
+  patientId : text;
+  date : text;
+  createdAt : nat64;
+  therapistId : text;
+};
+type AppointmentPayload = record {
+  startTime : text;
+  endTime : text;
+  patientId : text;
+  date : text;
+  therapistId : text;
+};
+type Patient = record {
+  id : text;
+  dob : text;
+  name : text;
+  createdAt : nat64;
+  updatedAt : opt nat64;
+  gender : text;
+  phone : text;
+};
+type PatientPayload = record {
+  dob : text;
+  name : text;
+  gender : text;
+  phone : text;
+};
+type Therapist = record {
+  id : text;
+  name : text;
+  createdAt : nat64;
+  updatedAt : opt nat64;
+  specialization : text;
+  phone : text;
+};
+type TherapistPayload = record {
+  name : text;
+  specialization : text;
+  phone : text;
+};
+type Treatment = record {
+  id : text;
+  name : text;
+  createdAt : nat64;
+  description : text;
+  updatedAt : opt nat64;
+  price : float64;
+};
+type TreatmentPayload = record {
+  name : text;
+  description : text;
+  price : float64;
+};
+type _AzleResult = variant { Ok : Appointment; Err : text };
+type _AzleResult_1 = variant { Ok : Patient; Err : text };
+type _AzleResult_2 = variant { Ok : Therapist; Err : text };
+type _AzleResult_3 = variant { Ok : Treatment; Err : text };
+type _AzleResult_4 = variant { Ok : vec Appointment; Err : text };
+type _AzleResult_5 = variant { Ok : vec Patient; Err : text };
+type _AzleResult_6 = variant { Ok : vec Therapist; Err : text };
+type _AzleResult_7 = variant { Ok : vec Treatment; Err : text };
+service : () -> {
+  addAppointment : (AppointmentPayload) -> (_AzleResult);
+  addPatient : (PatientPayload) -> (_AzleResult_1);
+  addTherapist : (TherapistPayload) -> (_AzleResult_2);
+  addTreatment : (TreatmentPayload) -> (_AzleResult_3);
+  deleteAppointment : (text) -> (_AzleResult);
+  deletePatient : (text) -> (_AzleResult_1);
+  deleteTherapist : (text) -> (_AzleResult_2);
+  deleteTreatment : (text) -> (_AzleResult_3);
+  getAppointments : () -> (_AzleResult_4) query;
+  getAppointmentsByDateRange : (text, text) -> (_AzleResult_4) query;
+  getAppointmentsByPatient : (text) -> (_AzleResult_4) query;
+  getAppointmentsByTherapist : (text) -> (_AzleResult_4) query;
+  getPatient : (text) -> (_AzleResult_1) query;
+  getPatients : () -> (_AzleResult_5) query;
+  getTherapist : (text) -> (_AzleResult_2) query;
+  getTherapists : () -> (_AzleResult_6) query;
+  getTreatment : (text) -> (_AzleResult_3) query;
+  getTreatments : () -> (_AzleResult_7) query;
+  getTreatmentsByPriceRange : (float64, float64) -> (_AzleResult_7) query;
+  updateAppointment : (text, AppointmentPayload) -> (_AzleResult);
+  updatePatient : (text, PatientPayload) -> (_AzleResult_1);
+  updateTherapist : (text, TherapistPayload) -> (_AzleResult_2);
+  updateTreatment : (text, TreatmentPayload) -> (_AzleResult_3);
+}
